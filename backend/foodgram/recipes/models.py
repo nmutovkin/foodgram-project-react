@@ -41,3 +41,31 @@ class Recipe(models.Model):
         related_name='recipes'
     )
     time = models.PositiveSmallIntegerField('Время приготовления')
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='follower',
+        verbose_name='Подписчик',
+        blank=True,
+        null=True
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='following',
+        verbose_name='Автор',
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_follow')
+        ]
+
+    def __str__(self):
+        return str(self.user) + " follows " + str(self.author)
