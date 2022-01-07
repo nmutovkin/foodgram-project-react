@@ -29,3 +29,18 @@ class CustomUserCreateSerializer(UserCreateSerializer):
                 "User with this email already exists"
             )
         return value
+
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'username',
+            'first_name', 'last_name', 'is_subscribed'
+        )
+        read_only_fields = (
+            'id', 'email', 'username',
+            'first_name', 'last_name', 'is_subscribed'
+        )
