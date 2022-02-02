@@ -1,6 +1,8 @@
-from django.db.models import Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef
 from djoser.views import UserViewSet
+
 from .models import Follow
+from .pagination import CustomPageNumberPagination
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -10,13 +12,17 @@ from .serializers import SubscribeSerializer
 
 
 class CustomUserViewSet(UserViewSet):
+    pagination_class = CustomPageNumberPagination
+
     def get_queryset(self):
         queryset = super().get_queryset()
         follows = Follow.objects.filter(
             user=self.request.user,
             author=OuterRef('id')
         )
-        return queryset.annotate(is_subscribed=Exists(follows))
+
+        queryset = queryset.annotate(is_subscribed=Exists(follows))
+        return queryset.annotate(recipes_count=Count('recipes'))
 
     def get_permissions(self):
         if self.action == 'subscribe':
@@ -36,7 +42,8 @@ class CustomUserViewSet(UserViewSet):
         if request.method == 'POST':
             serializer = SubscribeSerializer(
                 author,
-                data=request.data
+                data=request.data,
+                context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
 
@@ -79,5 +86,14 @@ class CustomUserViewSet(UserViewSet):
         follows = Follow.objects.filter(user=request.user)
         followed_users = queryset.filter(following__in=follows)
 
-        serializer = SubscribeSerializer(followed_users, many=True)
+        context = {'request': request}
+
+        page = self.paginate_queryset(followed_users)
+        if page is not None:
+            serializer = SubscribeSerializer(page, many=True,
+                                             context=context)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = SubscribeSerializer(followed_users, many=True,
+                                         context=context)
         return Response(serializer.data, status=status.HTTP_200_OK)
