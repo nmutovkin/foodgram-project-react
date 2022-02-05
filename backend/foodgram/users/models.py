@@ -9,7 +9,7 @@ class Follow(models.Model):
         User,
         on_delete=models.SET_NULL,
         related_name='follower',
-        verbose_name='Подписчик',
+        verbose_name='Subcriber',
         blank=True,
         null=True
     )
@@ -17,7 +17,7 @@ class Follow(models.Model):
         User,
         on_delete=models.SET_NULL,
         related_name='following',
-        verbose_name='Автор',
+        verbose_name='Author',
         blank=True,
         null=True
     )

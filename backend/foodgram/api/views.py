@@ -1,15 +1,18 @@
-from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
-from rest_framework import mixins, pagination, status, viewsets
+from django_filters import AllValuesMultipleFilter, FilterSet, NumberFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+
 from recipes.models import Favorite, IngredientType, Recipe, ShoppingCart, Tag
-from .serializers import (IngredientTypeSerializer, RecipeReadSerializer,
-                          RecipeShortSerializer,
-                          RecipeWriteSerializer, TagSerializer)
 from users.pagination import CustomPageNumberPagination
+
+from .serializers import (IngredientTypeSerializer, RecipeReadSerializer,
+                          RecipeShortSerializer, RecipeWriteSerializer,
+                          TagSerializer)
 
 
 class ListRetrieveViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -21,30 +24,56 @@ class TagViewSet(ListRetrieveViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    pagination_class = None
+
+
+class CustomSearchFilter(filters.SearchFilter):
+    search_param = 'name'
 
 
 class IngredientTypeViewSet(ListRetrieveViewSet):
     queryset = IngredientType.objects.all()
     serializer_class = IngredientTypeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    filter_backends = [CustomSearchFilter]
+    pagination_class = None
+    search_fields = ['^name']
+
+
+class RecipeFilter(FilterSet):
+    tags = AllValuesMultipleFilter(field_name='tags__slug')
+    is_favorited = NumberFilter(method='get_is_favorited')
+    is_in_shopping_cart = NumberFilter(method='get_is_in_shopping_cart')
+    author = NumberFilter(field_name='author__id')
+
+    def get_is_favorited(self, queryset, name, value):
+        if value == 1:
+            return queryset.filter(favorites__user=self.request.user)
+        else:
+            return queryset.exclude(favorites__user=self.request.user)
+
+    def get_is_in_shopping_cart(self, queryset, name, value):
+        if value == 1:
+            return queryset.filter(cart__user=self.request.user)
+        else:
+            return queryset.exclude(cart__user=self.request.user)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'tags',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'author'
+        )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
     pagination_class = CustomPageNumberPagination
-
-    def get_queryset(self):
-        queryset = Recipe.objects.all()
-        favorites = Favorite.objects.filter(
-            user=self.request.user,
-            recipe=OuterRef('id')
-        )
-        cart = ShoppingCart.objects.filter(
-            user=self.request.user,
-            recipe=OuterRef('id')
-        )
-        queryset = queryset.annotate(is_favorited=Exists(favorites))
-        return queryset.annotate(is_in_shopping_cart=Exists(cart))
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -64,11 +93,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('Удаление чужого контента запрещено!')
         super(RecipeViewSet, self).perform_destroy(serializer)
 
-    def add_to_special_list(self, request, Model, pk=None):
+    def add_to_special_list(self, request, model, pk=None):
         recipe = self.get_object()
         user = request.user
 
-        object = Model.objects.filter(
+        object = model.objects.filter(
             user=user,
             recipe=recipe
         )
@@ -86,7 +115,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            Model.objects.get_or_create(user=user, recipe=recipe)
+            model.objects.get_or_create(user=user, recipe=recipe)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
@@ -141,5 +170,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response_content = '\n'.join(lines)
 
         response = HttpResponse(response_content, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         return response

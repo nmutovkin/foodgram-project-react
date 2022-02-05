@@ -13,11 +13,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='recipe',
             name='ingredients',
-            field=models.ManyToManyField(related_name='recipes', to='recipes.Ingredient', verbose_name='Ингредиенты'),
+            field=models.ManyToManyField(
+                related_name='recipes',
+                to='recipes.Ingredient',
+                verbose_name='Ингредиенты'),
         ),
         migrations.AddField(
             model_name='recipe',
             name='tags',
-            field=models.ManyToManyField(related_name='recipes', to='recipes.Tag', verbose_name='Тэги'),
+            field=models.ManyToManyField(
+                related_name='recipes',
+                to='recipes.Tag',
+                verbose_name='Тэги'),
         ),
     ]

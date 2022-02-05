@@ -1,31 +1,19 @@
-from django.db.models import Count, Exists, OuterRef
 from djoser.views import UserViewSet
-
-from .models import Follow
-from .pagination import CustomPageNumberPagination
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .models import Follow
+from .pagination import CustomPageNumberPagination
 from .serializers import SubscribeSerializer
 
 
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        follows = Follow.objects.filter(
-            user=self.request.user,
-            author=OuterRef('id')
-        )
-
-        queryset = queryset.annotate(is_subscribed=Exists(follows))
-        return queryset.annotate(recipes_count=Count('recipes'))
-
     def get_permissions(self):
-        if self.action == 'subscribe':
+        if self.action == 'subscribe' or self.action == 'subscriptions':
             self.permission_classes = [IsAuthenticated, ]
         return super().get_permissions()
 
@@ -55,10 +43,8 @@ class CustomUserViewSet(UserViewSet):
 
             if user != author:
                 Follow.objects.get_or_create(user=user, author=author)
-                output_data = serializer.data
-                output_data['is_subscribed'] = True
                 return Response(
-                    output_data,
+                    serializer.data,
                     status=status.HTTP_201_CREATED
                 )
             else:

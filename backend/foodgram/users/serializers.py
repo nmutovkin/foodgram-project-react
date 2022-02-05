@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserSerializer, UserCreateSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
+
 from users.models import Follow
 
 User = get_user_model()
@@ -42,11 +43,10 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         return value
 
 
-class SubscribeSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(CustomUserSerializer):
 
-    is_subscribed = serializers.BooleanField(read_only=True)
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     def get_recipes(self, obj):
         from api.serializers import RecipeShortSerializer
@@ -55,6 +55,9 @@ class SubscribeSerializer(serializers.ModelSerializer):
         recipes_limit = int(recipes_limit)
         recipes = obj.recipes.all()[:recipes_limit]
         return RecipeShortSerializer(recipes, read_only=True, many=True).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.all().count()
 
     class Meta:
         model = User
