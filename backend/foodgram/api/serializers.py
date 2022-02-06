@@ -42,7 +42,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
-    image = Base64ImageField()
+    image = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -65,6 +65,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         )
 
         return cart_object.exists()
+
+    def get_image(self, obj):
+        return obj.image.url
 
     class Meta:
         model = Recipe
