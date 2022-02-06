@@ -59,7 +59,7 @@ jobs:
           script: |
             sudo docker-compose stop
             sudo docker-compose rm backend
-            rm -f touch.env
+            rm -f .env
             touch .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo DEBUG=${{ secrets.SECRET_KEY }} >> .env
