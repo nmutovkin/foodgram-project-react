@@ -48,6 +48,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         current_user = self.context['request'].user
 
+        if current_user.is_anonymous:
+            return False
+
         fav_object = Favorite.objects.filter(
             user=current_user,
             recipe=obj
@@ -57,6 +60,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_in_shopping_cart(self, obj):
         current_user = self.context['request'].user
+
+        if current_user.is_anonymous:
+            return False
 
         cart_object = ShoppingCart.objects.filter(
             user=current_user,
