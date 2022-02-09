@@ -1,7 +1,9 @@
+from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters import AllValuesMultipleFilter, FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Favorite, IngredientType, Recipe, ShoppingCart, Tag
+from recipes.models import (Favorite, Ingredient, IngredientType,
+                            Recipe, ShoppingCart, Tag)
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -147,24 +149,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         cart_objects = ShoppingCart.objects.filter(user=request.user)
         recipes = queryset.filter(cart__in=cart_objects)
 
-        ingredient_dict = dict()
+        ingredients = Ingredient.objects.filter(recipes__in=recipes)
+        ing_types = IngredientType.objects.filter(
+            ingredients__in=ingredients
+        ).annotate(amount=Sum('ingredients__amount'))
 
-        for recipe in recipes:
-            for ingredient in recipe.ingredients.all():
-                ingredient_type = ingredient.ingredient_type
-                amount = ingredient.amount
-
-                if ingredient_type in ingredient_dict:
-                    ingredient_dict[ingredient_type] += amount
-                else:
-                    ingredient_dict[ingredient_type] = amount
+        lines = [f'{ing_type.name}, {ing_type.amount}'
+                 f' {ing_type.measurement_unit}' for ing_type in ing_types]
 
         filename = 'shopping_ingredients.txt'
-        lines = []
-
-        for ing_type, amount in ingredient_dict.items():
-            lines.append(f'{ing_type.name}, {amount}'
-                         f' {ing_type.measurement_unit}')
 
         response_content = '\n'.join(lines)
 

@@ -17,7 +17,7 @@ URL сервиса: http://foodgram2.zapto.org/
 
 Для подготовки базы данных:
 
-1) выполнить миграции docker-compose exec backend python manage.py runserver
+1) выполнить миграции docker-compose exec backend python manage.py migrate
 2) собрать статику docker-compose exec backend python manage.py collectstatic --no-input
 3) создать суперпользователя docker-compose exec backend python manage.py createsuperuser
 

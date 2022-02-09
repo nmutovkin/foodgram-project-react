@@ -27,6 +27,9 @@ class Follow(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'author'], name='unique_follow')
         ]
+        ordering = ['user__username']
+        verbose_name = 'Follow'
+        verbose_name_plural = 'Follows'
 
     def __str__(self):
         return str(self.user) + " follows " + str(self.author)

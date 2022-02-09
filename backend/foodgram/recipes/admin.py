@@ -22,11 +22,12 @@ class TagAdmin(admin.ModelAdmin):
 
 class IngredientTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
+    search_fields = ('name', )
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('get_name', 'amount', 'get_measurement_unit')
-    list_filter = ('ingredient_type__name', )
+    search_fields = ('ingredient_type__name', )
 
     def get_name(self, obj):
         return obj.ingredient_type.name

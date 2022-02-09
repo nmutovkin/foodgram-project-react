@@ -19,6 +19,11 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name', ]
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
+
 
 class IngredientType(models.Model):
     name = models.CharField('Name', max_length=100)
@@ -26,6 +31,11 @@ class IngredientType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name', ]
+        verbose_name = 'Ingredient type'
+        verbose_name_plural = 'Ingredient types'
 
 
 class Ingredient(models.Model):
@@ -40,6 +50,11 @@ class Ingredient(models.Model):
     def __str__(self):
         return (f'{self.ingredient_type.name}, '
                 f'{self.amount} {self.ingredient_type.measurement_unit}')
+
+    class Meta:
+        ordering = ['ingredient_type__name']
+        verbose_name = 'Ingredient'
+        verbose_name_plural = 'Ingredients'
 
 
 class Recipe(models.Model):
@@ -74,6 +89,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
 
     def __str__(self):
         return self.name
@@ -98,6 +115,9 @@ class Favorite(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_favorite')
         ]
+        ordering = ['user__username', ]
+        verbose_name = 'Favorite'
+        verbose_name_plural = 'Favorites'
 
     def __str__(self):
         return f"{self.recipe} is favorited by {self.user}"
@@ -122,6 +142,10 @@ class ShoppingCart(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_cart')
         ]
+
+        ordering = ['user__username', ]
+        verbose_name = 'Shopping cart'
+        verbose_name_plural = 'Shopping carts'
 
     def __str__(self):
         return f"{self.recipe} is in shopping cart of {self.user}"
