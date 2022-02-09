@@ -20,6 +20,7 @@ URL сервиса: http://foodgram2.zapto.org/
 1) выполнить миграции docker-compose exec backend python manage.py migrate
 2) собрать статику docker-compose exec backend python manage.py collectstatic --no-input
 3) создать суперпользователя docker-compose exec backend python manage.py createsuperuser
+4) если есть предварительный сгенерированный дамп базы данных, то можно наполнить ее используя docker-compose exec backend python manage.py loaddata dump.json
 
 проект доступен по http://localhost
 админ-зона http://localhost/admin
