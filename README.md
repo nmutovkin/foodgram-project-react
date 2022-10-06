@@ -3,7 +3,6 @@
 ![example workflow](https://github.com/nmutovkin/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
 Foodgram - сервис для любителей готовить! Создавайте рецепты, делитесь ими и пробуйте новые идеи.
-URL сервиса: http://foodgram2.zapto.org/
 
 # Локальный запуск проекта
 
