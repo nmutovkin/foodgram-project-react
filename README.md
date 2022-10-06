@@ -1,4 +1,4 @@
-# Foodgram service
+# Foodgram
 
 ![example workflow](https://github.com/nmutovkin/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
@@ -24,8 +24,3 @@ URL сервиса: http://foodgram2.zapto.org/
 
 проект доступен по http://localhost
 админ-зона http://localhost/admin
-
-ip сервиса 51.250.26.16
-admin credentials:
-login: nmutovkin
-password: schumi546
